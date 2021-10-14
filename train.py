@@ -27,7 +27,7 @@ def train():
     criterion = nn.BCELoss()
 
     fixed_noise = torch.randn(128, 100).view(-1, 100, 1, 1).cuda()
-
+    training_progress_images_list = []
     for epoch in range(200):
         
         for batch in tqdm(dataloader, leave=False, ncols=70):
