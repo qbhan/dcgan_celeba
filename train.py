@@ -9,6 +9,8 @@ from torch.utils.data import DataLoader
 
 import numpy as np
 from tqdm import tqdm
+import fid_score
+from fid_score.fid_score import FidScore
 # import 
 
 from datasets import *
@@ -28,6 +30,14 @@ def train():
 
     fixed_noise = torch.randn(128, 100).view(-1, 100, 1, 1).cuda()
     training_progress_images_list = []
+
+    # validation set
+    realdataloader = init_data(batch_size=1000)
+    for i, (data, _) in enumerate(realdataloader):
+        real_dataset = data
+        break
+    real_list = save_image_list(real_dataset, True)
+
     for epoch in range(200):
         
         for batch in tqdm(dataloader, leave=False, ncols=70):
@@ -78,6 +88,11 @@ def train():
                 'optimizer_state_dict': optD.state_dict(),
                 }, './checkpoint/netD_epoch_%d.pth' % (epoch))
 
+        # validate
+        fake_list = save_image_list((fake * 0.5) + 0.5, False)
+        fid = FidScore([real_list, fake_list], 'cuda', 1000)
+        fid_value = fid.calculate_fid_score()
+        print ('[%d/%d] FID score: {}'.format(epoch, 200, fid_value))
 
 if __name__ == '__main__':
     train()
